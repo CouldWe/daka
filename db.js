@@ -5,7 +5,8 @@ const pool = new Pool({
     connectionString: `postgresql://postgres:${process.env.DATA_BASE_PASSWORD}@db.saxevoyxbwkksglzpiov.supabase.co:5432/postgres`,
     ssl: {
         rejectUnauthorized: false
-    }
+    },
+    family: 4
 });
 
 pool.on('error', (err) => {
