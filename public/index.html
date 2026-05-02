@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>美白打卡记录</title>
+    <title>肌肤日记</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
     <div id="loginPage" class="page">
         <div class="container">
             <div class="card">
-                <h1>美白打卡记录</h1>
+                <h1>肌肤日记</h1>
                 <form id="loginForm">
                     <div class="form-group">
                         <label for="loginUsername">用户名</label>
@@ -28,14 +28,11 @@
                         </label>
                     </div>
                     <button type="submit" class="btn btn-primary">登录</button>
-                    <button type="button" class="btn btn-secondary" onclick="showRegister()">注册新账号</button>
                 </form>
                 <div id="loginError" class="error-message"></div>
             </div>
         </div>
-    </div>
-
-    <!-- 注册页面 -->
+    </div>    <!-- 注册页面（已禁用）
     <div id="registerPage" class="page hidden">
         <div class="container">
             <div class="card">
@@ -60,101 +57,111 @@
             </div>
         </div>
     </div>
+    -->
 
     <!-- 主页面 -->
     <div id="mainPage" class="page hidden">
         <div class="header">
-            <h1>美白打卡记录</h1>
+            <h1>肌肤日记</h1>
             <div class="user-info">
                 <span id="usernameDisplay"></span>
                 <button class="btn btn-small" onclick="logout()">登出</button>
             </div>
         </div>
 
-        <div class="container">
-            <!-- 统计信息 -->
-            <div class="stats-container">
-                <div class="stat-card">
-                    <div class="stat-value" id="currentStreak">0</div>
-                    <div class="stat-label">当前连续天数</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="maxStreak">0</div>
-                    <div class="stat-label">最长连续天数</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="totalCheckins">0</div>
-                    <div class="stat-label">总打卡次数</div>
+        <div class="main-layout">
+            <!-- 侧边栏 -->
+            <div class="sidebar">
+                <nav class="sidebar-nav">
+                    <button class="sidebar-tab active" data-tab="checkin">今日打卡</button>
+                    <button class="sidebar-tab" data-tab="records">查看记录</button>
+                </nav>
+                <div class="sidebar-stats">
+                    <div class="sidebar-stat">
+                        <div class="sidebar-stat-value" id="currentStreak">0</div>
+                        <div class="sidebar-stat-label">当前连续</div>
+                    </div>
+                    <div class="sidebar-stat">
+                        <div class="sidebar-stat-value" id="maxStreak">0</div>
+                        <div class="sidebar-stat-label">最长连续</div>
+                    </div>
+                    <div class="sidebar-stat">
+                        <div class="sidebar-stat-value" id="totalCheckins">0</div>
+                        <div class="sidebar-stat-label">总打卡</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- 打卡区域 -->
-            <div class="card checkin-card">
-                <h2>今日打卡</h2>
-                <div id="checkinStatus"></div>
-                <form id="checkinForm" class="hidden">
-                    <div class="form-group">
-                        <label for="photoUpload" class="upload-label">
-                            <span>📷 选择照片</span>
-                            <input type="file" id="photoUpload" accept="image/jpeg,image/jpg,image/png" required>
-                        </label>
-                        <div id="photoPreview" class="photo-preview hidden">
-                            <img id="previewImage" alt="预览">
+            <!-- 内容区 -->
+            <div class="content">
+                <!-- 打卡 tab -->
+                <div id="tabCheckin" class="tab-content">
+                    <div class="card checkin-card">
+                        <h2>今日打卡</h2>
+                        <div id="checkinStatus"></div>
+                        <form id="checkinForm" class="hidden">
+                            <div class="form-group">
+                                <label for="photoUpload" class="upload-label">
+                                    <span>点击或拖拽上传照片</span>
+                                    <input type="file" id="photoUpload" accept="image/jpeg,image/jpg,image/png" required>
+                                </label>
+                                <div id="photoPreview" class="photo-preview hidden">
+                                    <img id="previewImage" alt="预览">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">提交打卡</button>
+                        </form>
+                        <div id="checkinError" class="error-message"></div>
+                    </div>
+                </div>
+
+                <!-- 记录 tab -->
+                <div id="tabRecords" class="tab-content hidden">
+                    <div class="view-controls">
+                        <h2>查看记录</h2>
+                        <div class="view-buttons">
+                            <button class="btn btn-view active" onclick="switchView('grid', event)">网格视图</button>
+                            <button class="btn btn-view" onclick="switchView('timeline', event)">时间线视图</button>
+                            <button class="btn btn-view" onclick="switchView('comparison', event)">对比视图</button>
+                            <button class="btn btn-view" onclick="switchView('calendar', event)">日历视图</button>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">提交打卡</button>
-                </form>
-                <div id="checkinError" class="error-message"></div>
-            </div>
 
-            <!-- 视图切换 -->
-            <div class="view-controls">
-                <h2>查看记录</h2>
-                <div class="view-buttons">
-                    <button class="btn btn-view active" onclick="switchView('grid', event)">网格视图</button>
-                    <button class="btn btn-view" onclick="switchView('timeline', event)">时间线视图</button>
-                    <button class="btn btn-view" onclick="switchView('comparison', event)">对比视图</button>
-                    <button class="btn btn-view" onclick="switchView('calendar', event)">日历视图</button>
-                </div>
-            </div>
-
-            <!-- 网格视图 -->
-            <div id="gridView" class="view-container">
-                <div id="gridContent" class="grid-container"></div>
-            </div>
-
-            <!-- 时间线视图 -->
-            <div id="timelineView" class="view-container hidden">
-                <div id="timelineContent" class="timeline-container"></div>
-            </div>
-
-            <!-- 对比视图 -->
-            <div id="comparisonView" class="view-container hidden">
-                <div class="comparison-controls">
-                    <p>选择两张照片进行对比（点击照片选择）</p>
-                    <button class="btn btn-secondary" onclick="clearComparison()">清除选择</button>
-                </div>
-                <div id="comparisonContent" class="comparison-container">
-                    <div class="comparison-side">
-                        <h3>照片 1</h3>
-                        <div id="compareSlot1" class="compare-slot">点击下方照片选择</div>
+                    <div id="gridView" class="view-container">
+                        <div id="gridContent" class="grid-container"></div>
                     </div>
-                    <div class="comparison-side">
-                        <h3>照片 2</h3>
-                        <div id="compareSlot2" class="compare-slot">点击下方照片选择</div>
+
+                    <div id="timelineView" class="view-container hidden">
+                        <div id="timelineContent" class="timeline-container"></div>
+                    </div>
+
+                    <div id="comparisonView" class="view-container hidden">
+                        <div class="comparison-controls">
+                            <p>选择两张照片进行对比（点击照片选择）</p>
+                            <button class="btn btn-secondary" onclick="clearComparison()">清除选择</button>
+                        </div>
+                        <div id="comparisonContent" class="comparison-container">
+                            <div class="comparison-side">
+                                <h3>照片 1</h3>
+                                <div id="compareSlot1" class="compare-slot">点击下方照片选择</div>
+                            </div>
+                            <div class="comparison-side">
+                                <h3>照片 2</h3>
+                                <div id="compareSlot2" class="compare-slot">点击下方照片选择</div>
+                            </div>
+                        </div>
+                        <div id="comparisonGrid" class="grid-container"></div>
+                    </div>
+
+                    <div id="calendarView" class="view-container hidden">
+                        <div class="calendar-controls">
+                            <button class="btn btn-small" onclick="changeMonth(-1)">← 上月</button>
+                            <h3 id="calendarMonth"></h3>
+                            <button class="btn btn-small" onclick="changeMonth(1)">下月 →</button>
+                        </div>
+                        <div id="calendarContent" class="calendar-container"></div>
                     </div>
                 </div>
-                <div id="comparisonGrid" class="grid-container"></div>
-            </div>
-
-            <!-- 日历视图 -->
-            <div id="calendarView" class="view-container hidden">
-                <div class="calendar-controls">
-                    <button class="btn btn-small" onclick="changeMonth(-1)">← 上月</button>
-                    <h3 id="calendarMonth"></h3>
-                    <button class="btn btn-small" onclick="changeMonth(1)">下月 →</button>
-                </div>
-                <div id="calendarContent" class="calendar-container"></div>
             </div>
         </div>
     </div>

@@ -67,44 +67,9 @@ const requireAuth = (req, res, next) => {
     }
 };
 
-// 路由 - 注册
+// 路由 - 注册（已禁用）
 app.post('/api/register', async (req, res) => {
-    try {
-        const { username, password } = req.body;
-
-        if (!username || !password) {
-            return res.status(400).json({ error: '用户名和密码不能为空' });
-        }
-
-        if (password.length < 6) {
-            return res.status(400).json({ error: '密码长度至少6位' });
-        }
-
-        const passwordHash = await bcrypt.hash(password, 10);
-
-        const result = await db.query(
-            'INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id, username',
-            [username, passwordHash]
-        );
-
-        req.session.userId = result.rows[0].id;
-        req.session.username = result.rows[0].username;
-
-        res.json({
-            success: true,
-            user: {
-                id: result.rows[0].id,
-                username: result.rows[0].username
-            }
-        });
-    } catch (error) {
-        if (error.code === '23505') {
-            res.status(400).json({ error: '用户名已存在' });
-        } else {
-            console.error('注册错误:', error);
-            res.status(500).json({ error: '注册失败' });
-        }
-    }
+    res.status(403).json({ error: '注册功能已关闭' });
 });
 
 // 路由 - 登录
@@ -184,7 +149,8 @@ app.get('/api/stats', requireAuth, async (req, res) => {
             [req.session.userId]
         );
 
-        const today = new Date().toISOString().split('T')[0];
+        const now = new Date();
+        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         const todayResult = await db.query(
             'SELECT day_count FROM check_ins WHERE user_id = $1 AND check_in_date = $2',
             [req.session.userId, today]
@@ -209,7 +175,8 @@ app.post('/api/checkin', requireAuth, upload.single('photo'), async (req, res) =
             return res.status(400).json({ error: '请上传照片' });
         }
 
-        const today = new Date().toISOString().split('T')[0];
+        const now = new Date();
+        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
         // 检查今天是否已打卡
         const existingCheckin = await db.query(
@@ -226,7 +193,7 @@ app.post('/api/checkin', requireAuth, upload.single('photo'), async (req, res) =
         // 获取昨天的打卡记录
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = yesterday.toISOString().split('T')[0];
+        const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
 
         const yesterdayCheckin = await db.query(
             'SELECT day_count FROM check_ins WHERE user_id = $1 AND check_in_date = $2',
@@ -269,9 +236,14 @@ app.get('/api/checkins', requireAuth, async (req, res) => {
         );
 
         const checkins = result.rows.map(row => {
-            const dateStr = row.check_in_date instanceof Date
-                ? row.check_in_date.toISOString().split('T')[0]
-                : row.check_in_date;
+            // 无论 pg 返回 Date 还是字符串，都转成本地 YYYY-MM-DD
+            let dateStr;
+            if (row.check_in_date instanceof Date) {
+                const d = row.check_in_date;
+                dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            } else {
+                dateStr = row.check_in_date;
+            }
 
             return {
                 id: row.id,

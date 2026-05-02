@@ -3,6 +3,7 @@ let currentUser = null;
 let allCheckins = [];
 let checkinPhotos = {}; // 按 checkin id 缓存照片数据
 let currentView = 'grid';
+let currentTab = 'checkin';
 let comparisonSlots = [null, null];
 let currentCalendarDate = new Date();
 
@@ -17,14 +18,19 @@ function setupEventListeners() {
     // 登录表单
     document.getElementById('loginForm').addEventListener('submit', handleLogin);
 
-    // 注册表单
-    document.getElementById('registerForm').addEventListener('submit', handleRegister);
+    // 注册表单（已禁用）
+    // document.getElementById('registerForm').addEventListener('submit', handleRegister);
 
     // 打卡表单
     document.getElementById('checkinForm').addEventListener('submit', handleCheckin);
 
     // 照片预览
     document.getElementById('photoUpload').addEventListener('change', handlePhotoPreview);
+
+    // 侧边栏 tab 切换
+    document.querySelectorAll('.sidebar-tab').forEach(tab => {
+        tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+    });
 }
 
 // 检查认证状态
@@ -48,28 +54,26 @@ async function checkAuth() {
 // 显示登录页面
 function showLoginPage() {
     document.getElementById('loginPage').classList.remove('hidden');
-    document.getElementById('registerPage').classList.add('hidden');
     document.getElementById('mainPage').classList.add('hidden');
 }
 
-// 显示注册页面
-function showRegister() {
-    document.getElementById('loginPage').classList.add('hidden');
-    document.getElementById('registerPage').classList.remove('hidden');
-    document.getElementById('mainPage').classList.add('hidden');
-}
+// 显示注册页面（已禁用）
+// function showRegister() {
+//     document.getElementById('loginPage').classList.add('hidden');
+//     document.getElementById('registerPage').classList.remove('hidden');
+//     document.getElementById('mainPage').classList.add('hidden');
+// }
 
-// 显示登录页面（从注册返回）
-function showLogin() {
-    document.getElementById('loginPage').classList.remove('hidden');
-    document.getElementById('registerPage').classList.add('hidden');
-    document.getElementById('mainPage').classList.add('hidden');
-}
+// 显示登录页面（从注册返回）（已禁用）
+// function showLogin() {
+//     document.getElementById('loginPage').classList.remove('hidden');
+//     document.getElementById('registerPage').classList.add('hidden');
+//     document.getElementById('mainPage').classList.add('hidden');
+// }
 
 // 显示主页面
 async function showMainPage() {
     document.getElementById('loginPage').classList.add('hidden');
-    document.getElementById('registerPage').classList.add('hidden');
     document.getElementById('mainPage').classList.remove('hidden');
 
     document.getElementById('usernameDisplay').textContent = currentUser.username;
@@ -77,7 +81,7 @@ async function showMainPage() {
     await loadStats();
     await loadCheckins();
     await loadPhotos();
-    renderCurrentView();
+    switchTab('checkin');
 }
 
 // 处理登录
@@ -109,39 +113,39 @@ async function handleLogin(e) {
     }
 }
 
-// 处理注册
-async function handleRegister(e) {
-    e.preventDefault();
-
-    const username = document.getElementById('registerUsername').value;
-    const password = document.getElementById('registerPassword').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-
-    if (password !== confirmPassword) {
-        document.getElementById('registerError').textContent = '两次密码输入不一致';
-        return;
-    }
-
-    try {
-        const response = await fetch('/api/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            currentUser = data.user;
-            await showMainPage();
-        } else {
-            document.getElementById('registerError').textContent = data.error || '注册失败';
-        }
-    } catch (error) {
-        console.error('注册错误:', error);
-        document.getElementById('registerError').textContent = '注册失败，请重试';
-    }
-}
+// 处理注册（已禁用）
+// async function handleRegister(e) {
+//     e.preventDefault();
+//
+//     const username = document.getElementById('registerUsername').value;
+//     const password = document.getElementById('registerPassword').value;
+//     const confirmPassword = document.getElementById('confirmPassword').value;
+//
+//     if (password !== confirmPassword) {
+//         document.getElementById('registerError').textContent = '两次密码输入不一致';
+//         return;
+//     }
+//
+//     try {
+//         const response = await fetch('/api/register', {
+//             method: 'POST',
+//             headers: { 'Content-Type': 'application/json' },
+//             body: JSON.stringify({ username, password })
+//         });
+//
+//         const data = await response.json();
+//
+//         if (response.ok) {
+//             currentUser = data.user;
+//             await showMainPage();
+//         } else {
+//             document.getElementById('registerError').textContent = data.error || '注册失败';
+//         }
+//     } catch (error) {
+//         console.error('注册错误:', error);
+//         document.getElementById('registerError').textContent = '注册失败，请重试';
+//     }
+// }
 
 // 登出
 async function logout() {
@@ -174,7 +178,7 @@ async function loadStats() {
         const checkinForm = document.getElementById('checkinForm');
 
         if (data.checkedInToday) {
-            checkinStatus.textContent = `✅ 今天已打卡！连续 ${data.currentDayCount} 天`;
+            checkinStatus.textContent = `今日已打卡 · 连续 ${data.currentDayCount} 天`;
             checkinForm.classList.add('hidden');
         } else {
             checkinStatus.textContent = '';
@@ -263,18 +267,37 @@ async function handleCheckin(e) {
         if (response.ok) {
             document.getElementById('checkinError').textContent = '';
             document.getElementById('photoPreview').classList.add('hidden');
+            document.getElementById('previewImage').src = '';
             fileInput.value = '';
 
             await loadStats();
             await loadCheckins();
             await loadPhotos();
-            renderCurrentView();
+            switchTab('records');
         } else {
             document.getElementById('checkinError').textContent = data.error || '打卡失败';
         }
     } catch (error) {
         console.error('打卡错误:', error);
         document.getElementById('checkinError').textContent = '打卡失败，请重试';
+    }
+}
+
+// 切换 tab（打卡 / 记录）
+function switchTab(tabName) {
+    currentTab = tabName;
+
+    // 更新侧边栏按钮状态
+    document.querySelectorAll('.sidebar-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.tab === tabName);
+    });
+
+    // 切换内容区域
+    document.getElementById('tabCheckin').classList.toggle('hidden', tabName !== 'checkin');
+    document.getElementById('tabRecords').classList.toggle('hidden', tabName !== 'records');
+
+    if (tabName === 'records') {
+        renderCurrentView();
     }
 }
 
@@ -334,7 +357,7 @@ function renderGridView() {
     console.log('渲染网格视图，记录数量:', allCheckins.length);
 
     if (allCheckins.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">暂无打卡记录</p>';
+        container.innerHTML = '<p style="text-align:center;color:#bbb;padding:48px 0;font-size:14px;">还没有打卡记录</p>';
         return;
     }
 
@@ -352,7 +375,7 @@ function renderGridView() {
             `;
         } else {
             item.innerHTML = `
-                <div style="width:100%;height:250px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;color:#999;">加载中...</div>
+                <div style="width:100%;height:100%;background:#f3f1ed;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:13px;">加载中</div>
                 <div class="grid-item-info">
                     <div class="grid-item-date">${formatDate(checkin.date)}</div>
                     <div class="grid-item-day">第 ${checkin.dayCount} 天</div>
@@ -369,7 +392,7 @@ function renderTimelineView() {
     container.innerHTML = '';
 
     if (allCheckins.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">暂无打卡记录</p>';
+        container.innerHTML = '<p style="text-align:center;color:#bbb;padding:48px 0;font-size:14px;">还没有打卡记录</p>';
         return;
     }
 
@@ -380,7 +403,7 @@ function renderTimelineView() {
         item.innerHTML = `
             <div class="timeline-content">
                 <div class="timeline-photo">
-                    ${photoData ? `<img src="${photoData}" alt="打卡照片">` : '<div style="width:200px;height:200px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;color:#999;border-radius:8px;">加载中...</div>'}
+                    ${photoData ? `<img src="${photoData}" alt="打卡照片">` : '<div style="width:180px;height:180px;background:#f3f1ed;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:13px;border-radius:10px;">加载中</div>'}
                 </div>
                 <div class="timeline-info">
                     <div class="timeline-date">${formatDate(checkin.date)}</div>
@@ -398,7 +421,7 @@ function renderComparisonView() {
     container.innerHTML = '';
 
     if (allCheckins.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">暂无打卡记录</p>';
+        container.innerHTML = '<p style="text-align:center;color:#bbb;padding:48px 0;font-size:14px;">还没有打卡记录</p>';
         return;
     }
 
@@ -416,7 +439,7 @@ function renderComparisonView() {
             `;
         } else {
             item.innerHTML = `
-                <div style="width:100%;height:250px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;color:#999;">加载中...</div>
+                <div style="width:100%;height:100%;background:#f3f1ed;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:13px;">加载中</div>
                 <div class="grid-item-info">
                     <div class="grid-item-date">${formatDate(checkin.date)}</div>
                     <div class="grid-item-day">第 ${checkin.dayCount} 天</div>
@@ -465,7 +488,7 @@ function updateComparisonSlot(slotIndex, checkin) {
     if (checkin) {
         const photoData = checkinPhotos[checkin.id];
         slot.innerHTML = `
-            ${photoData ? `<img src="${photoData}" alt="对比照片">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#999;">加载中...</div>'}
+            ${photoData ? `<img src="${photoData}" alt="对比照片">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:13px;">加载中</div>'}
             <div style="position: absolute; bottom: 10px; left: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 10px; border-radius: 5px;">
                 <div>${formatDate(checkin.date)}</div>
                 <div>第 ${checkin.dayCount} 天</div>
@@ -535,7 +558,7 @@ function renderCalendarView() {
                 `;
             } else {
                 dayElement.innerHTML = `
-                    <div style="width:100%;height:100%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:bold;color:#667eea;">${checkin.dayCount}</div>
+                    <div style="width:100%;height:100%;background:#f3f1ed;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:bold;color:#c4a88c;">${checkin.dayCount}</div>
                     <div class="calendar-day-badge">${checkin.dayCount}</div>
                 `;
             }
@@ -553,11 +576,8 @@ function changeMonth(delta) {
     renderCalendarView();
 }
 
-// 格式化日期
+// 格式化日期（直接解析字符串，避开 JS Date 时区陷阱）
 function formatDate(dateStr) {
-    const date = new Date(dateStr);
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    return `${year}年${month}月${day}日`;
+    const [year, month, day] = dateStr.split('-');
+    return `${year}年${parseInt(month)}月${parseInt(day)}日`;
 }
