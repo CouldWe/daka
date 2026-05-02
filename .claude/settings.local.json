@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm -f /tmp/cookies2.txt)",
+      "Bash(curl -s -c /tmp/cookies2.txt -b /tmp/cookies2.txt -X POST http://localhost:3000/api/register -H \"Content-Type: application/json\" -d '{\"username\":\"debuguser\",\"password\":\"pass123\"}')",
+      "Bash(curl -s -c /tmp/cookies2.txt -b /tmp/cookies2.txt -X POST http://localhost:3000/api/checkin -F \"photo=@/tmp/test2.jpg\")",
+      "Bash(curl -s -b /tmp/cookies2.txt \"http://localhost:3000/api/checkins\")",
+      "Bash(curl -s -b /tmp/cookies2.txt http://localhost:3000/api/stats)",
+      "Bash(rm -f /tmp/test_cookies.txt)",
+      "Bash(curl -s -c /tmp/test_cookies.txt -b /tmp/test_cookies.txt -X POST http://localhost:3000/api/register -H \"Content-Type: application/json\" -d '{\"username\":\"test99\",\"password\":\"pass123\"}')",
+      "Bash(curl -s -c /tmp/test_cookies.txt -b /tmp/test_cookies.txt -X POST http://localhost:3000/api/checkin -F \"photo=@/tmp/test3.jpg\")",
+      "Bash(curl -s -b /tmp/test_cookies.txt http://localhost:3000/api/checkins --max-time 5)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(tasklist)",
+      "Bash(powershell -Command \"Stop-Process -Name node -Force\")"
+    ]
+  }
+}
